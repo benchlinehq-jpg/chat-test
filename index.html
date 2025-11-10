@@ -22,7 +22,7 @@
     data-welcome="Hey! Ask me a test question."
     data-theme="auto"></script>
 <onload="console.log('widget loaded');"
-  onerror="alert('Could not load widget.js (check tunnel URL)');"></script>
+ 
 
 <!-- Probe: after the page loads, check if the widget created its root -->
 <script>
@@ -30,7 +30,7 @@
     setTimeout(function () {
       var hasRoot = !!document.getElementById('blx-root');
       if (!hasRoot) {
-        alert('Widget script ran? ' + (typeof document.currentScript==='object') + '\nBut no chat bubble.\nWe will fix next.');
+        
       }
     }, 1200);
   });

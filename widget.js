@@ -23,7 +23,9 @@
   font-size: 24px;      /* NEW: bigger icon */
   line-height: 56px;    /* centers icon */
   text-align: center;   /* centers icon */
-}
+}root.appendChild(btn);
+alert("Button added? " + !!document.getElementById("blx-btn"));
+
 
 }
 #blx-panel {

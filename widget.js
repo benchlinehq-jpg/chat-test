@@ -54,10 +54,14 @@
   btn.id = "blx-btn";
   btn.setAttribute("aria-label", "Open chat");
   btn.textContent = "OPEN";
-  btn.onclick = () => {
-    root.dataset.open = root.dataset.open === "true" ? "false" : "true";
-    if (root.dataset.open === "true" && msgs.children.length === 0) {
-      addBot(welcome);
+ btn.onclick = () => {
+  alert("OPEN button clicked");
+  root.dataset.open = "true";               // always open
+  if (msgs.children.length === 0) {
+    addBot(welcome);
+  }
+};
+
     }
   };
   root.appendChild(btn);
@@ -81,6 +85,7 @@
   const input = panel.querySelector("#blx-input");
   const send  = panel.querySelector("#blx-send");
   const msgs  = panel.querySelector("#blx-msgs");
+root.dataset.open = "true";
 
   close.onclick = () => (root.dataset.open = "false");
 

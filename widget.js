@@ -18,6 +18,13 @@
   position: fixed; right: 20px; bottom: 20px; z-index: 2147483000;
   width: 56px; height: 56px; border-radius: 9999px; border: none; cursor: pointer;
   box-shadow: 0 10px 30px rgba(0,0,0,.18);
+  background: #4f46e5;  /* NEW: solid color so it’s visible */
+  color: #ffffff;       /* NEW: white icon/text */
+  font-size: 24px;      /* NEW: bigger icon */
+  line-height: 56px;    /* centers icon */
+  text-align: center;   /* centers icon */
+}
+
 }
 #blx-panel {
   position: fixed; right: 20px; bottom: 90px; z-index: 2147483000;

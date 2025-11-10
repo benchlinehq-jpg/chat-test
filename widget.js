@@ -1,3 +1,4 @@
+alert("WIDGET v103 is running");
 
 (() => {
   const script = document.currentScript;

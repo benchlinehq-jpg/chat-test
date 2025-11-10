@@ -3,27 +3,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Benchline Bot – GitHub Pages Test</title>
+  <title>Chat Test</title>
 </head>
 <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;">
-  <h1>Benchline Bot – GitHub Pages Test</h1>
-  <p>You should see a 💬 bubble at bottom-right.</p>
-<script defer
+  <h1>Chat Test — Minimal Page</h1>
+  <p>If the script runs, you’ll see an alert. Then an OPEN button should appear bottom-right.</p>
+
+  <!-- ONLY script on the page -->
+  <script defer
     src="./widget.js?v=103"
-    data-endpoint="https://robust-header-ages-julia.trycloudflare.com/api/chat"
+    data-endpoint=" https://robust-header-ages-julia.trycloudflare.com/api/chat"
     data-title="Benchline Bot"
     data-welcome="Hey! Ask me a test question."
     data-theme="auto"></script>
-<onload="console.log('widget loaded');"
- 
-
-<!-- Probe: after the page loads, check if the widget created its root -->
-<script>
-  window.addEventListener('load', function () {
-    setTimeout(function () {
-      var hasRoot = !!document.getElementById('blx-root');
-      if (!hasRoot) {
-        
-      }
-    }, 1200);
-  
+</body>
+</html>

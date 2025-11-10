@@ -1,3 +1,4 @@
+alert("WIDGET v201 running");
 // Minimal external widget proof
 console.log("WIDGET v200 running");
 document.body.style.outline = "6px solid #4f46e5"; // big purple frame so you can't miss it

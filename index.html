@@ -8,6 +8,12 @@
 <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;">
   <h1>Benchline Bot – GitHub Pages Test</h1>
   <p>You should see a 💬 bubble at bottom-right.</p>
+<script>
+  window.onerror = function (msg, src, line, col, err) {
+    alert("JS Error:\n" + msg + "\n" + src + ":" + line + ":" + col);
+    return false;
+  };
+</script>
 
   <script defer
     src="https://robust-header-ages-julia.trycloudflare.com /public/widget.js?v=1"

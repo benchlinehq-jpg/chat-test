@@ -5,16 +5,13 @@
   const title = script?.dataset?.title || "Chat";
   const welcome = script?.dataset?.welcome || "Hi! Ask me anything.";
   const theme = (script?.dataset?.theme || "auto").toLowerCase();
+  const accent = script?.dataset?.accent || "#4f46e5"; // NEW: brand color
 
   // Derive /api/lead from the same host as the chat endpoint
   let leadEndpoint;
-  try {
-    leadEndpoint = new URL("/api/lead", endpoint).toString();
-  } catch {
-    leadEndpoint = "/api/lead";
-  }
+  try { leadEndpoint = new URL("/api/lead", endpoint).toString(); } catch { leadEndpoint = "/api/lead"; }
 
-  // Root container
+  // Root
   const root = document.createElement("div");
   root.id = "blx-root";
   document.body.appendChild(root);
@@ -27,11 +24,11 @@
   position: fixed; right: 20px; bottom: 20px; z-index: 2147483000;
   width: 72px; height: 44px; border-radius: 9999px; border: none; cursor: pointer;
   box-shadow: 0 10px 30px rgba(0,0,0,.18);
-  background: #4f46e5; color: #ffffff; font-size: 16px; line-height: 44px; text-align:center;
+  background: var(--accent); color: #ffffff; font-size: 16px; line-height: 44px; text-align:center;
 }
 #blx-panel {
   position: fixed; right: 20px; bottom: 74px; z-index: 2147483000;
-  width: 360px; max-width: calc(100vw - 40px); height: 560px; max-height: calc(100vh - 120px);
+  width: 360px; max-width: calc(100vw - 40px); height: 600px; max-height: calc(100vh - 120px);
   background: var(--bg); color: var(--fg); border-radius: 16px; display: none;
   box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden; border: 1px solid var(--bd);
 }
@@ -39,14 +36,19 @@
 
 #blx-header { padding: 12px 14px; font-weight: 600; border-bottom: 1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; }
 #blx-close { background: transparent; border: none; font-size: 20px; color: var(--fg); cursor: pointer; }
+
+#blx-chips { padding:10px 12px; display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px dashed var(--bd); }
+.blx-chip { padding:6px 10px; border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:9999px; cursor:pointer; font-size:13px; }
+.blx-chip:hover { border-color: var(--accent); color: var(--accent); }
+
 #blx-msgs { flex:1 1 auto; padding: 12px; overflow:auto; display:flex; flex-direction:column; gap:10px; background:var(--bg); }
 .blx-msg { padding:10px 12px; border-radius:12px; max-width:85%; line-height:1.35; white-space:pre-wrap; }
 .blx-user { align-self:flex-end; background: var(--bubble-user); color: var(--fg-user); }
 .blx-bot  { align-self:flex-start; background: var(--bubble-bot); color: var(--fg); border:1px solid var(--bd); }
-#blx-bar  { display:flex; gap:8px; padding:12px; border-top:1px solid var(--bd); align-items:center; background:var(--bg); }
 
+#blx-bar  { display:flex; gap:8px; padding:12px; border-top:1px solid var(--bd); align-items:center; background:var(--bg); }
 #blx-input { flex:1 1 auto; padding:10px 12px; border-radius:12px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); }
-#blx-send  { padding:10px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--bg3); color: var(--fg); cursor:pointer; }
+#blx-send  { padding:10px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--accent); color:#fff; cursor:pointer; }
 
 #blx-cta   { border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:10px; padding:8px 10px; cursor:pointer; }
 #blx-lead  { display:none; border-top:1px dashed var(--bd); padding:10px 12px; background:var(--bg); }
@@ -55,8 +57,8 @@
 .blx-f input, .blx-f textarea { flex:1 1 auto; padding:10px 12px; border-radius:10px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); }
 #blx-lead button { padding:10px 14px; border-radius:10px; border:1px solid var(--bd); background:var(--bg3); color:var(--fg); cursor:pointer; }
 
-#blx-root[data-theme="dark"]  { --bg:#0b0c0f; --bg2:#111318; --bg3:#171a21; --fg:#eaeef6; --fg-user:#0b0c0f; --bd:#2a2f3a; --bubble-user:#c8d2ff; --bubble-bot:#0f1218; }
-#blx-root[data-theme="light"] { --bg:#ffffff; --bg2:#fbfbfc; --bg3:#f6f7fb; --fg:#0a0b0f; --fg-user:#0a0b0f; --bd:#e6e8ef; --bubble-user:#e8ecff; --bubble-bot:#ffffff; }
+#blx-root[data-theme="dark"]  { --bg:#0b0c0f; --bg2:#111318; --bg3:#171a21; --fg:#eaeef6; --fg-user:#0b0c0f; --bd:#2a2f3a; --bubble-user:#c8d2ff; --bubble-bot:#0f1218; --accent:${accent}; }
+#blx-root[data-theme="light"] { --bg:#ffffff; --bg2:#fbfbfc; --bg3:#f6f7fb; --fg:#0a0b0f; --fg-user:#0a0b0f; --bd:#e6e8ef; --bubble-user:#e8ecff; --bubble-bot:#ffffff; --accent:${accent}; }
 `;
   document.head.appendChild(css);
 
@@ -84,6 +86,14 @@
       <div>${title}</div>
       <button id="blx-close" aria-label="Close chat">×</button>
     </div>
+
+    <!-- NEW: Quick-reply chips -->
+    <div id="blx-chips">
+      <button class="blx-chip" data-text="Can I get a quick quote? I’m in Horry County.">Get quote</button>
+      <button class="blx-chip" data-text="What are your prices for standard cleaning and mobile detailing?">Pricing</button>
+      <button class="blx-chip" data-text="Can we book a 15-minute call?">Book a call</button>
+    </div>
+
     <div id="blx-msgs"></div>
 
     <!-- Lead form (hidden by default) -->
@@ -106,6 +116,10 @@
   const input = panel.querySelector("#blx-input");
   const send  = panel.querySelector("#blx-send");
   const msgs  = panel.querySelector("#blx-msgs");
+
+  // Chips
+  const chips = panel.querySelectorAll(".blx-chip");
+  chips.forEach(ch => ch.addEventListener("click", () => sendPreset(ch.getAttribute("data-text") || ch.textContent)));
 
   // Lead UI refs
   const leadBox   = panel.querySelector("#blx-lead");
@@ -149,7 +163,15 @@
     const text = input.value.trim();
     if (!text) return;
     input.value = "";
+    await actuallySend(text);
+  }
 
+  async function sendPreset(text) {
+    if (busy) return;
+    await actuallySend(text);
+  }
+
+  async function actuallySend(text) {
     history.push({ role: "user", content: text });
     addUser(text);
 
@@ -195,13 +217,13 @@
     }
   }
 
-  // Enter-to-send (but only when not busy)
+  // Enter-to-send
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !busy) sendMessage();
   });
   send.onclick = sendMessage;
 
-  // --- Lead capture toggle + submit ---
+  // Lead capture toggle + submit
   leadBtn.onclick = () => {
     leadBox.classList.toggle("show");
     if (leadBox.classList.contains("show")) {
@@ -210,38 +232,23 @@
     }
   };
 
-  function validEmail(s) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
-  }
+  function validEmail(s) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim()); }
 
   saveLead.onclick = async () => {
     const name  = (nameEl.value || "").trim();
     const email = (emailEl.value || "").trim();
     const note  = (noteEl.value || "").trim();
 
-    if (!name || !email) {
-      leadStat.textContent = "Please enter your name and email.";
-      leadStat.style.color = "#b42318";
-      return;
-    }
-    if (!validEmail(email)) {
-      leadStat.textContent = "Please enter a valid email.";
-      leadStat.style.color = "#b42318";
-      return;
-    }
+    if (!name || !email) { leadStat.textContent = "Please enter your name and email."; leadStat.style.color = "#b42318"; return; }
+    if (!validEmail(email)) { leadStat.textContent = "Please enter a valid email."; leadStat.style.color = "#b42318"; return; }
 
-    leadStat.textContent = "Saving…";
-    leadStat.style.color = "inherit";
+    leadStat.textContent = "Saving…"; leadStat.style.color = "inherit";
 
     try {
       const res = await fetch(leadEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name, email,
-          message: note,
-          source: "chat-widget"
-        }),
+        body: JSON.stringify({ name, email, message: note, source: "chat-widget" }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       leadStat.textContent = "✅ Thanks! We’ll reach out shortly.";

@@ -1,10 +1,18 @@
 (() => {
-  // Read options from the script tag (works with a normal <script defer ...> include)
+  // Read options set on the script tag in index.html
   const script = document.currentScript;
   const endpoint = script?.dataset?.endpoint || "/api/chat";
   const title = script?.dataset?.title || "Chat";
   const welcome = script?.dataset?.welcome || "Hi! Ask me anything.";
   const theme = (script?.dataset?.theme || "auto").toLowerCase();
+
+  // Derive /api/lead from the same host as the chat endpoint
+  let leadEndpoint;
+  try {
+    leadEndpoint = new URL("/api/lead", endpoint).toString();
+  } catch {
+    leadEndpoint = "/api/lead";
+  }
 
   // Root container
   const root = document.createElement("div");
@@ -23,7 +31,7 @@
 }
 #blx-panel {
   position: fixed; right: 20px; bottom: 74px; z-index: 2147483000;
-  width: 360px; max-width: calc(100vw - 40px); height: 520px; max-height: calc(100vh - 120px);
+  width: 360px; max-width: calc(100vw - 40px); height: 560px; max-height: calc(100vh - 120px);
   background: var(--bg); color: var(--fg); border-radius: 16px; display: none;
   box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden; border: 1px solid var(--bd);
 }
@@ -31,13 +39,21 @@
 
 #blx-header { padding: 12px 14px; font-weight: 600; border-bottom: 1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; }
 #blx-close { background: transparent; border: none; font-size: 20px; color: var(--fg); cursor: pointer; }
-#blx-msgs { flex:1 1 auto; padding: 12px; overflow:auto; display:flex; flex-direction:column; gap:10px; }
+#blx-msgs { flex:1 1 auto; padding: 12px; overflow:auto; display:flex; flex-direction:column; gap:10px; background:var(--bg); }
 .blx-msg { padding:10px 12px; border-radius:12px; max-width:85%; line-height:1.35; white-space:pre-wrap; }
 .blx-user { align-self:flex-end; background: var(--bubble-user); color: var(--fg-user); }
-.blx-bot { align-self:flex-start; background: var(--bubble-bot); color: var(--fg); border:1px solid var(--bd); }
-#blx-bar { display:flex; gap:8px; padding:12px; border-top:1px solid var(--bd); }
+.blx-bot  { align-self:flex-start; background: var(--bubble-bot); color: var(--fg); border:1px solid var(--bd); }
+#blx-bar  { display:flex; gap:8px; padding:12px; border-top:1px solid var(--bd); align-items:center; background:var(--bg); }
+
 #blx-input { flex:1 1 auto; padding:10px 12px; border-radius:12px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); }
-#blx-send { padding:10px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--bg3); color: var(--fg); cursor:pointer; }
+#blx-send  { padding:10px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--bg3); color: var(--fg); cursor:pointer; }
+
+#blx-cta   { border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:10px; padding:8px 10px; cursor:pointer; }
+#blx-lead  { display:none; border-top:1px dashed var(--bd); padding:10px 12px; background:var(--bg); }
+#blx-lead.show { display:block; }
+.blx-f { display:flex; gap:8px; margin-bottom:8px; }
+.blx-f input, .blx-f textarea { flex:1 1 auto; padding:10px 12px; border-radius:10px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); }
+#blx-lead button { padding:10px 14px; border-radius:10px; border:1px solid var(--bd); background:var(--bg3); color:var(--fg); cursor:pointer; }
 
 #blx-root[data-theme="dark"]  { --bg:#0b0c0f; --bg2:#111318; --bg3:#171a21; --fg:#eaeef6; --fg-user:#0b0c0f; --bd:#2a2f3a; --bubble-user:#c8d2ff; --bubble-bot:#0f1218; }
 #blx-root[data-theme="light"] { --bg:#ffffff; --bg2:#fbfbfc; --bg3:#f6f7fb; --fg:#0a0b0f; --fg-user:#0a0b0f; --bd:#e6e8ef; --bubble-user:#e8ecff; --bubble-bot:#ffffff; }
@@ -56,9 +72,7 @@
   btn.textContent = "OPEN";
   btn.onclick = () => {
     root.dataset.open = root.dataset.open === "true" ? "false" : "true";
-    if (root.dataset.open === "true" && msgs.children.length === 0) {
-      addBot(welcome);
-    }
+    if (root.dataset.open === "true" && msgs.children.length === 0) addBot(welcome);
   };
   root.appendChild(btn);
 
@@ -71,7 +85,18 @@
       <button id="blx-close" aria-label="Close chat">×</button>
     </div>
     <div id="blx-msgs"></div>
+
+    <!-- Lead form (hidden by default) -->
+    <div id="blx-lead">
+      <div class="blx-f"><input id="blx-name" type="text" placeholder="Your name" /></div>
+      <div class="blx-f"><input id="blx-email" type="email" placeholder="Your email" /></div>
+      <div class="blx-f"><textarea id="blx-note" rows="2" placeholder="Optional message"></textarea></div>
+      <button id="blx-save">Share contact</button>
+      <div id="blx-lead-status" style="margin-top:8px;font-size:13px;"></div>
+    </div>
+
     <div id="blx-bar">
+      <button id="blx-cta" title="Share contact so we can follow up">Share contact</button>
       <input id="blx-input" type="text" placeholder="Type a message..." />
       <button id="blx-send">Send</button>
     </div>`;
@@ -81,6 +106,15 @@
   const input = panel.querySelector("#blx-input");
   const send  = panel.querySelector("#blx-send");
   const msgs  = panel.querySelector("#blx-msgs");
+
+  // Lead UI refs
+  const leadBox   = panel.querySelector("#blx-lead");
+  const leadBtn   = panel.querySelector("#blx-cta");
+  const nameEl    = panel.querySelector("#blx-name");
+  const emailEl   = panel.querySelector("#blx-email");
+  const noteEl    = panel.querySelector("#blx-note");
+  const saveLead  = panel.querySelector("#blx-save");
+  const leadStat  = panel.querySelector("#blx-lead-status");
 
   close.onclick = () => (root.dataset.open = "false");
 
@@ -101,9 +135,8 @@
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  // --- Step 3A: UX polish (typing indicator, disable while sending, Retry) ---
+  // --- Typing indicator + disable while sending + Retry ---
   let busy = false;
-
   function setBusy(v) {
     busy = v;
     input.disabled = v;
@@ -117,11 +150,9 @@
     if (!text) return;
     input.value = "";
 
-    // user bubble
     history.push({ role: "user", content: text });
     addUser(text);
 
-    // typing indicator
     setBusy(true);
     const typing = document.createElement("div");
     typing.className = "blx-msg blx-bot";
@@ -136,10 +167,7 @@
       const rb = document.createElement("button");
       rb.textContent = "Retry";
       rb.style.cssText = "padding:6px 10px;border:1px solid var(--bd);background:var(--bg3);color:var(--fg);border-radius:10px;cursor:pointer";
-      rb.onclick = () => {
-        input.value = text;  // put the same message back
-        sendMessage();
-      };
+      rb.onclick = () => { input.value = text; sendMessage(); };
       wrap.appendChild(rb);
       msgs.appendChild(wrap);
       msgs.scrollTop = msgs.scrollHeight;
@@ -172,4 +200,58 @@
     if (e.key === "Enter" && !busy) sendMessage();
   });
   send.onclick = sendMessage;
+
+  // --- Lead capture toggle + submit ---
+  leadBtn.onclick = () => {
+    leadBox.classList.toggle("show");
+    if (leadBox.classList.contains("show")) {
+      nameEl.focus();
+      leadStat.textContent = "";
+    }
+  };
+
+  function validEmail(s) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s || "").trim());
+  }
+
+  saveLead.onclick = async () => {
+    const name  = (nameEl.value || "").trim();
+    const email = (emailEl.value || "").trim();
+    const note  = (noteEl.value || "").trim();
+
+    if (!name || !email) {
+      leadStat.textContent = "Please enter your name and email.";
+      leadStat.style.color = "#b42318";
+      return;
+    }
+    if (!validEmail(email)) {
+      leadStat.textContent = "Please enter a valid email.";
+      leadStat.style.color = "#b42318";
+      return;
+    }
+
+    leadStat.textContent = "Saving…";
+    leadStat.style.color = "inherit";
+
+    try {
+      const res = await fetch(leadEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, email,
+          message: note,
+          source: "chat-widget"
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      leadStat.textContent = "✅ Thanks! We’ll reach out shortly.";
+      nameEl.value = ""; emailEl.value = ""; noteEl.value = "";
+      setTimeout(() => leadBox.classList.remove("show"), 800);
+    } catch (e) {
+      leadStat.textContent = "❌ Couldn’t save right now. Please try again.";
+      leadStat.style.color = "#b42318";
+      console.error(e);
+    }
+  };
 })();
+

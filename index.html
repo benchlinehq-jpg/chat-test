@@ -46,9 +46,13 @@
   };
   document.body.appendChild(s);
 </script>
-
+  // v205 inline check
+  document.body.style.background = "#ffeef5"; // light pink
+  const badge = document.createElement("div");
+  badge.textContent = "✅ Inline JS v205 is running";
+  badge.style.cssText = "margin-top:12px;padding:12px;background:#e6ffed;border:1px solid #b7eb8f;border-radius:8px;color:#135200;";
+  document.body.appendChild(badge);
 </script>
-
 
 </body>
 </html>

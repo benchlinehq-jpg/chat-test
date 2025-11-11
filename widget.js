@@ -80,14 +80,7 @@
   const input = panel.querySelector("#blx-input");
   const send  = panel.querySelector("#blx-send");
   const msgs  = panel.querySelector("#blx-msgs");
-// DEBUG: prove widget runs and auto-open the panel
-const flag = document.createElement("div");
-flag.textContent = "🟢 Widget active — opening chat…";
-flag.style.cssText = "position:fixed;left:12px;bottom:12px;background:#e6ffed;border:1px solid #b7eb8f;padding:8px 10px;border-radius:8px;color:#135200;z-index:2147483647";
-document.body.appendChild(flag);
 
-root.dataset.open = "true";
-addBot(welcome);
 
   close.onclick = () => (root.dataset.open = "false");
 

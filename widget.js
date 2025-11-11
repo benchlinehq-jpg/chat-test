@@ -1,13 +1,13 @@
 (() => {
-  // Read options set on the script tag in index.html
+  // Read options from the script tag
   const script = document.currentScript;
   const endpoint = script?.dataset?.endpoint || "/api/chat";
   const title = script?.dataset?.title || "Chat";
   const welcome = script?.dataset?.welcome || "Hi! Ask me anything.";
   const theme = (script?.dataset?.theme || "auto").toLowerCase();
-  const accent = script?.dataset?.accent || "#4f46e5"; // NEW: brand color
+  const accent = script?.dataset?.accent || "#4f46e5";
 
-  // Derive /api/lead from the same host as the chat endpoint
+  // Derive /api/lead from same host as chat endpoint
   let leadEndpoint;
   try { leadEndpoint = new URL("/api/lead", endpoint).toString(); } catch { leadEndpoint = "/api/lead"; }
 
@@ -16,21 +16,20 @@
   root.id = "blx-root";
   document.body.appendChild(root);
 
-  // Styles
+  // Styles (desktop + mobile tweaks)
   const css = document.createElement("style");
   css.textContent = `
 #blx-root * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
 #blx-btn {
-  position: fixed; right: 20px; bottom: 20px; z-index: 2147483000;
-  width: 72px; height: 44px; border-radius: 9999px; border: none; cursor: pointer;
-  box-shadow: 0 10px 30px rgba(0,0,0,.18);
-  background: var(--accent); color: #ffffff; font-size: 16px; line-height: 44px; text-align:center;
+  position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 2147483000; width: 72px; height: 44px; border-radius: 9999px; border: none; cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); background: var(--accent); color: #ffffff; font-size: 16px; line-height: 44px; text-align:center;
 }
 #blx-panel {
-  position: fixed; right: 20px; bottom: 74px; z-index: 2147483000;
-  width: 360px; max-width: calc(100vw - 40px); height: 600px; max-height: calc(100vh - 120px);
-  background: var(--bg); color: var(--fg); border-radius: 16px; display: none;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2); overflow: hidden; border: 1px solid var(--bd);
+  position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 54px);
+  z-index: 2147483000; width: 360px; max-width: calc(100vw - 24px); height: 600px; max-height: calc(100vh - 140px);
+  background: var(--bg); color: var(--fg); border-radius: 16px; display: none; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  overflow: hidden; border: 1px solid var(--bd);
 }
 #blx-root[data-open="true"] #blx-panel { display: flex; flex-direction: column; }
 
@@ -47,10 +46,10 @@
 .blx-bot  { align-self:flex-start; background: var(--bubble-bot); color: var(--fg); border:1px solid var(--bd); }
 
 #blx-bar  { display:flex; gap:8px; padding:12px; border-top:1px solid var(--bd); align-items:center; background:var(--bg); }
-#blx-input { flex:1 1 auto; padding:10px 12px; border-radius:12px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); }
-#blx-send  { padding:10px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--accent); color:#fff; cursor:pointer; }
+#blx-input { flex:1 1 auto; padding:12px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); min-height: 44px; }
+#blx-send  { padding:12px 16px; border-radius:12px; border:1px solid var(--bd); background:var(--accent); color:#fff; cursor:pointer; min-height: 44px; }
 
-#blx-cta   { border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:10px; padding:8px 10px; cursor:pointer; }
+#blx-cta   { border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:10px; padding:10px 12px; cursor:pointer; }
 #blx-lead  { display:none; border-top:1px dashed var(--bd); padding:10px 12px; background:var(--bg); }
 #blx-lead.show { display:block; }
 .blx-f { display:flex; gap:8px; margin-bottom:8px; }
@@ -59,6 +58,25 @@
 
 #blx-root[data-theme="dark"]  { --bg:#0b0c0f; --bg2:#111318; --bg3:#171a21; --fg:#eaeef6; --fg-user:#0b0c0f; --bd:#2a2f3a; --bubble-user:#c8d2ff; --bubble-bot:#0f1218; --accent:${accent}; }
 #blx-root[data-theme="light"] { --bg:#ffffff; --bg2:#fbfbfc; --bg3:#f6f7fb; --fg:#0a0b0f; --fg-user:#0a0b0f; --bd:#e6e8ef; --bubble-user:#e8ecff; --bubble-bot:#ffffff; --accent:${accent}; }
+
+/* --- Mobile tweaks --- */
+@media (max-width: 480px) {
+  #blx-btn { width: 72px; height: 48px; font-size: 16px; line-height: 48px; }
+  #blx-panel {
+    right: max(8px, env(safe-area-inset-right));
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 56px);
+    width: calc(100vw - 16px);
+    height: min(72vh, 560px);
+    border-radius: 14px;
+  }
+  #blx-header { padding: 10px 12px; }
+  #blx-chips { padding: 8px 10px; gap: 6px; }
+  #blx-msgs { padding: 10px; gap: 8px; }
+  #blx-bar { padding: 10px; gap: 8px; }
+  #blx-input { padding: 12px; font-size: 16px; }
+  #blx-send  { padding: 12px 14px; font-size: 16px; }
+  .blx-chip { padding: 6px 10px; font-size: 13px; }
+}
 `;
   document.head.appendChild(css);
 
@@ -87,7 +105,6 @@
       <button id="blx-close" aria-label="Close chat">×</button>
     </div>
 
-    <!-- NEW: Quick-reply chips -->
     <div id="blx-chips">
       <button class="blx-chip" data-text="Can I get a quick quote? I’m in Horry County.">Get quote</button>
       <button class="blx-chip" data-text="What are your prices for standard cleaning and mobile detailing?">Pricing</button>
@@ -96,7 +113,6 @@
 
     <div id="blx-msgs"></div>
 
-    <!-- Lead form (hidden by default) -->
     <div id="blx-lead">
       <div class="blx-f"><input id="blx-name" type="text" placeholder="Your name" /></div>
       <div class="blx-f"><input id="blx-email" type="email" placeholder="Your email" /></div>
@@ -149,7 +165,7 @@
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  // --- Typing indicator + disable while sending + Retry ---
+  // Typing indicator + disable while sending + Retry
   let busy = false;
   function setBusy(v) {
     busy = v;
@@ -261,4 +277,3 @@
     }
   };
 })();
-

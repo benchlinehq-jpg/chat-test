@@ -1,11 +1,12 @@
 (() => {
+  // Read options from the script tag (works with a normal <script defer ...> include)
   const script = document.currentScript;
   const endpoint = script?.dataset?.endpoint || "/api/chat";
   const title = script?.dataset?.title || "Chat";
   const welcome = script?.dataset?.welcome || "Hi! Ask me anything.";
   const theme = (script?.dataset?.theme || "auto").toLowerCase();
 
-  // Root
+  // Root container
   const root = document.createElement("div");
   root.id = "blx-root";
   document.body.appendChild(root);
@@ -81,7 +82,6 @@
   const send  = panel.querySelector("#blx-send");
   const msgs  = panel.querySelector("#blx-msgs");
 
-
   close.onclick = () => (root.dataset.open = "false");
 
   const history = []; // {role, content}
@@ -101,19 +101,49 @@
     msgs.scrollTop = msgs.scrollHeight;
   }
 
+  // --- Step 3A: UX polish (typing indicator, disable while sending, Retry) ---
+  let busy = false;
+
+  function setBusy(v) {
+    busy = v;
+    input.disabled = v;
+    send.disabled = v;
+    send.textContent = v ? "Sending…" : "Send";
+  }
+
   async function sendMessage() {
+    if (busy) return;
     const text = input.value.trim();
     if (!text) return;
     input.value = "";
 
+    // user bubble
     history.push({ role: "user", content: text });
     addUser(text);
 
-    const placeholder = document.createElement("div");
-    placeholder.className = "blx-msg blx-bot";
-    placeholder.textContent = "…";
-    msgs.appendChild(placeholder);
+    // typing indicator
+    setBusy(true);
+    const typing = document.createElement("div");
+    typing.className = "blx-msg blx-bot";
+    typing.textContent = "typing…";
+    msgs.appendChild(typing);
     msgs.scrollTop = msgs.scrollHeight;
+
+    function showRetry() {
+      const wrap = document.createElement("div");
+      wrap.style.textAlign = "left";
+      wrap.style.marginTop = "6px";
+      const rb = document.createElement("button");
+      rb.textContent = "Retry";
+      rb.style.cssText = "padding:6px 10px;border:1px solid var(--bd);background:var(--bg3);color:var(--fg);border-radius:10px;cursor:pointer";
+      rb.onclick = () => {
+        input.value = text;  // put the same message back
+        sendMessage();
+      };
+      wrap.appendChild(rb);
+      msgs.appendChild(wrap);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
 
     try {
       const res = await fetch(endpoint, {
@@ -123,18 +153,23 @@
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      placeholder.remove();
+
+      typing.remove();
       addBot(data.reply || "(no reply)");
       history.push({ role: "assistant", content: data.reply || "" });
     } catch (e) {
-      placeholder.remove();
+      typing.remove();
       addBot("Oops, I couldn't reach the chat server.");
+      showRetry();
       console.error(e);
+    } finally {
+      setBusy(false);
     }
   }
 
-  send.onclick = sendMessage;
+  // Enter-to-send (but only when not busy)
   input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") sendMessage();
+    if (e.key === "Enter" && !busy) sendMessage();
   });
+  send.onclick = sendMessage;
 })();

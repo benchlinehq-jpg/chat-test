@@ -6,6 +6,8 @@
   const welcome  = script?.dataset?.welcome || "Hi! Ask me anything.";
   const theme    = (script?.dataset?.theme || "auto").toLowerCase();
   const accent   = script?.dataset?.accent || "#4f46e5";
+  const privacy  = script?.dataset?.privacy || "./privacy.html"; // NEW
+  const booking  = script?.dataset?.booking || "https://calendly.com/benchlinehq/30min"; // NEW
 
   // Derive /api/lead from same host as chat endpoint
   let leadEndpoint;
@@ -38,7 +40,18 @@
 #blx-root[data-open="true"] #blx-panel { display: flex; flex-direction: column; }
 
 #blx-header { padding: 12px 14px; font-weight: 600; border-bottom: 1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; }
-#blx-close { background: transparent; border: none; font-size: 20px; color: var(--fg); cursor: pointer; }
+#blx-h-actions { display:flex; align-items:center; gap:8px; }
+#blx-close, #blx-menu-btn { background: transparent; border: none; font-size: 20px; color: var(--fg); cursor: pointer; }
+#blx-menu-btn svg { width: 18px; height: 18px; }
+
+#blx-menu {
+  position:absolute; right: 10px; top: 46px; z-index: 2147483600;
+  display:none; min-width: 180px; padding:8px; border-radius:12px; border:1px solid var(--bd);
+  background: var(--bg); color: var(--fg); box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+#blx-menu a { display:block; padding:8px 10px; border-radius:8px; text-decoration:none; color:var(--fg); font-size:14px; }
+#blx-menu a:hover { background: var(--bg3); }
+#blx-root[data-menu="true"] #blx-menu { display:block; }
 
 #blx-chips { padding:10px 12px; display:flex; gap:8px; flex-wrap:wrap; border-bottom:1px dashed var(--bd); }
 .blx-chip { padding:6px 10px; border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:9999px; cursor:pointer; font-size:13px; }
@@ -107,15 +120,26 @@
   const panel = document.createElement("div");
   panel.id = "blx-panel";
   panel.innerHTML = `
-    <div id="blx-header">
+    <div id="blx-header" style="position:relative">
       <div>${title}</div>
-      <button id="blx-close" aria-label="Close chat">×</button>
+      <div id="blx-h-actions">
+        <button id="blx-menu-btn" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 8a2 2 0 110-4 2 2 0 010 4zm0 6a2 2 0 110-4 2 2 0 010 4zm-2 6a2 2 0 104 0 2 2 0 00-4 0z"/>
+          </svg>
+        </button>
+        <button id="blx-close" aria-label="Close chat">×</button>
+      </div>
+      <div id="blx-menu" role="menu" aria-label="Chat menu">
+        <a href="${privacy}" target="_blank" rel="noopener" role="menuitem">Privacy</a>
+        <a href="${booking}" target="_blank" rel="noopener" role="menuitem">Book a call</a>
+      </div>
     </div>
 
     <div id="blx-chips">
       <button class="blx-chip" data-text="Can I get a quick quote? I’m in Horry County.">Get quote</button>
       <button class="blx-chip" data-text="What are your prices for standard cleaning and mobile detailing?">Pricing</button>
-      <button class="blx-chip" data-url="https://calendly.com/benchlinehq/30min">Book a call</button>
+      <button class="blx-chip" data-url="${booking}">Book a call</button>
     </div>
 
     <div id="blx-msgs"></div>
@@ -137,22 +161,20 @@
   root.appendChild(panel);
 
   const close = panel.querySelector("#blx-close");
-  const input = panel.querySelector("#blx-input");
-  const send  = panel.querySelector("#blx-send");
-  const msgs  = panel.querySelector("#blx-msgs");
+  const menuBtn = panel.querySelector("#blx-menu-btn");
+  const menuEl  = panel.querySelector("#blx-menu");
+  const input   = panel.querySelector("#blx-input");
+  const send    = panel.querySelector("#blx-send");
+  const msgs    = panel.querySelector("#blx-msgs");
 
   // Chips
   const chips = panel.querySelectorAll(".blx-chip");
   chips.forEach(ch => ch.addEventListener("click", () => {
-  const url = ch.getAttribute("data-url");
-  if (url) {
-    window.open(url, "_blank", "noopener,noreferrer");
-    return;
-  }
-  const txt = ch.getAttribute("data-text") || ch.textContent;
-  sendPreset(txt);
-}));
-
+    const url = ch.getAttribute("data-url");
+    if (url) { window.open(url, "_blank", "noopener,noreferrer"); return; }
+    const txt = ch.getAttribute("data-text") || ch.textContent;
+    sendPreset(txt);
+  }));
 
   // Lead UI refs
   const leadBox   = panel.querySelector("#blx-lead");
@@ -164,6 +186,17 @@
   const leadStat  = panel.querySelector("#blx-lead-status");
 
   close.onclick = () => (root.dataset.open = "false");
+
+  // Header menu toggle + close on outside/Escape
+  function toggleMenu(state) {
+    const open = state !== undefined ? state : (root.dataset.menu !== "true");
+    root.dataset.menu = open ? "true" : "false";
+  }
+  menuBtn.addEventListener("click", (e) => { e.stopPropagation(); toggleMenu(); });
+  panel.addEventListener("click", (e) => {
+    if (!menuEl.contains(e.target) && e.target !== menuBtn) toggleMenu(false);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggleMenu(false); });
 
   const history = []; // {role, content}
 
@@ -251,9 +284,7 @@
   }
 
   // Enter-to-send
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !busy) sendMessage();
-  });
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !busy) sendMessage(); });
   send.onclick = sendMessage;
 
   // Lead capture toggle + submit
@@ -298,9 +329,8 @@
     }
   };
 
-  // Resolve theme tokens
+  // Resolve theme tokens (ensure after DOM)
   const prefers = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
   const resolvedTheme = theme === "auto" ? (prefers ? "dark" : "light") : theme;
   root.setAttribute("data-theme", resolvedTheme);
-
 })();

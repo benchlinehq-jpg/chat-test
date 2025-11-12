@@ -161,9 +161,9 @@
       </div>
     </div>
 
-    <<div id="blx-chips">
-  <button class="blx-chip" data-text="Can I get a quick quote?">Get quote</button>
-  <button class="blx-chip" data-text="What are your prices?">Pricing</button>
+    <div id="blx-chips">
+  <button class="blx-chip" data-text="quick quote please">Get quote</button>
+  <button class="blx-chip" data-text="pricing / prices overview">Pricing</button>
   <button class="blx-chip" data-url="https://calendly.com/benchlinehq/30min">Book a call</button>
 </div>
 

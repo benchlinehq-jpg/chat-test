@@ -161,11 +161,11 @@
       </div>
     </div>
 
-    <div id="blx-chips">
-      <button class="blx-chip" data-text="Can I get a quick quote? I’m in Horry County.">Get quote</button>
-      <button class="blx-chip" data-text="What are your prices for standard cleaning and mobile detailing?">Pricing</button>
-      <button class="blx-chip" data-url="${booking}">Book a call</button>
-    </div>
+    <<div id="blx-chips">
+  <button class="blx-chip" data-text="Can I get a quick quote?">Get quote</button>
+  <button class="blx-chip" data-text="What are your prices?">Pricing</button>
+  <button class="blx-chip" data-url="https://calendly.com/benchlinehq/30min">Book a call</button>
+</div>
 
     <div id="blx-msgs"></div>
 

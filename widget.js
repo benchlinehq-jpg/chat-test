@@ -119,7 +119,8 @@
       <div class="blx-f"><textarea id="blx-note" rows="2" placeholder="Optional message"></textarea></div>
       <button id="blx-save">Share contact</button>
       <div id="blx-lead-status" style="margin-top:8px;font-size:13px;"></div>
-    </div>
+    </div><input id="blx-hp" type="text" style="display:none" autocomplete="off" tabindex="-1" aria-hidden="true" />
+
 
     <div id="blx-bar">
       <button id="blx-cta" title="Share contact so we can follow up">Share contact</button>

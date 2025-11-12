@@ -115,7 +115,7 @@
     <div id="blx-chips">
       <button class="blx-chip" data-text="Can I get a quick quote? I’m in Horry County.">Get quote</button>
       <button class="blx-chip" data-text="What are your prices for standard cleaning and mobile detailing?">Pricing</button>
-      <button class="blx-chip" data-text="Can we book a 15-minute call?">Book a call</button>
+      <button class="blx-chip" data-url="https://calendly.com/benchlinehq/30min">Book a call</button>
     </div>
 
     <div id="blx-msgs"></div>
@@ -143,7 +143,16 @@
 
   // Chips
   const chips = panel.querySelectorAll(".blx-chip");
-  chips.forEach(ch => ch.addEventListener("click", () => sendPreset(ch.getAttribute("data-text") || ch.textContent)));
+  chips.forEach(ch => ch.addEventListener("click", () => {
+  const url = ch.getAttribute("data-url");
+  if (url) {
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+  const txt = ch.getAttribute("data-text") || ch.textContent;
+  sendPreset(txt);
+}));
+
 
   // Lead UI refs
   const leadBox   = panel.querySelector("#blx-lead");

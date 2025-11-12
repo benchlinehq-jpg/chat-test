@@ -255,6 +255,8 @@
     const name  = (nameEl.value || "").trim();
     const email = (emailEl.value || "").trim();
     const note  = (noteEl.value || "").trim();
+    const hp = (document.getElementById("blx-hp").value || "").trim();
+     if (hp) { leadStat.textContent = "❌ Try again."; return; }
 
     if (!name || !email) { leadStat.textContent = "Please enter your name and email."; leadStat.style.color = "#b42318"; return; }
     if (!validEmail(email)) { leadStat.textContent = "Please enter a valid email."; leadStat.style.color = "#b42318"; return; }

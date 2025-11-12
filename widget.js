@@ -6,8 +6,9 @@
   const welcome  = script?.dataset?.welcome || "Hi! Ask me anything.";
   const theme    = (script?.dataset?.theme || "auto").toLowerCase();
   const accent   = script?.dataset?.accent || "#4f46e5";
-  const privacy  = script?.dataset?.privacy || "./privacy.html"; // NEW
-  const booking  = script?.dataset?.booking || "https://calendly.com/benchlinehq/30min"; // NEW
+  const privacy  = script?.dataset?.privacy || "./privacy.html";
+  const booking  = script?.dataset?.booking || "https://calendly.com/benchlinehq/30min";
+  const logo     = script?.dataset?.logo || ""; // NEW
 
   // Derive /api/lead from same host as chat endpoint
   let leadEndpoint;
@@ -39,7 +40,10 @@
 }
 #blx-root[data-open="true"] #blx-panel { display: flex; flex-direction: column; }
 
-#blx-header { padding: 12px 14px; font-weight: 600; border-bottom: 1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; }
+#blx-header { padding: 12px 14px; font-weight: 600; border-bottom: 1px solid var(--bd); display:flex; align-items:center; justify-content:space-between; position:relative; }
+#blx-title { display:flex; align-items:center; gap:10px; }
+#blx-logo  { width:24px; height:24px; border-radius:9999px; object-fit:cover; border:1px solid var(--bd); }
+
 #blx-h-actions { display:flex; align-items:center; gap:8px; }
 #blx-close, #blx-menu-btn { background: transparent; border: none; font-size: 20px; color: var(--fg); cursor: pointer; }
 #blx-menu-btn svg { width: 18px; height: 18px; }
@@ -120,8 +124,11 @@
   const panel = document.createElement("div");
   panel.id = "blx-panel";
   panel.innerHTML = `
-    <div id="blx-header" style="position:relative">
-      <div>${title}</div>
+    <div id="blx-header">
+      <div id="blx-title">
+        ${logo ? `<img id="blx-logo" src="${logo}" alt="">` : ``}
+        <div>${title}</div>
+      </div>
       <div id="blx-h-actions">
         <button id="blx-menu-btn" aria-label="Menu">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

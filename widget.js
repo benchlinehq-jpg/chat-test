@@ -8,7 +8,7 @@
   const accent   = script?.dataset?.accent || "#4f46e5";
   const privacy  = script?.dataset?.privacy || "./privacy.html";
   const booking  = script?.dataset?.booking || "https://calendly.com/benchlinehq/30min";
-  const logo     = script?.dataset?.logo || ""; // NEW
+  const logo     = script?.dataset?.logo || "";
 
   // Derive /api/lead from same host as chat endpoint
   let leadEndpoint;
@@ -20,7 +20,7 @@
   root.id = "blx-root";
   document.body.appendChild(root);
 
-  // Styles (desktop + mobile)
+  // Styles (desktop + mobile + toast)
   const css = document.createElement("style");
   css.textContent = `
 #blx-root * { box-sizing: border-box; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial; }
@@ -76,6 +76,24 @@
 .blx-f { display:flex; gap:8px; margin-bottom:8px; }
 .blx-f input, .blx-f textarea { flex:1 1 auto; padding:10px 12px; border-radius:10px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); }
 #blx-lead button { padding:10px 14px; border-radius:10px; border:1px solid var(--bd); background:var(--bg3); color:var(--fg); cursor:pointer; }
+
+/* Toast */
+#blx-toast {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 64px + 12px);
+  z-index: 2147483600;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.12);
+  display: none;
+  font-size: 14px;
+}
+#blx-toast.show { display: block; animation: blx-fade 2.4s ease-out forwards; }
+@keyframes blx-fade { 0%{opacity:0; transform: translateY(6px)} 10%{opacity:1; transform: translateY(0)} 85%{opacity:1} 100%{opacity:0; transform: translateY(6px)} }
 
 #blx-root[data-theme="dark"]  { --bg:#0b0c0f; --bg2:#111318; --bg3:#171a21; --fg:#eaeef6; --fg-user:#0b0c0f; --bd:#2a2f3a; --bubble-user:#c8d2ff; --bubble-bot:#0f1218; --accent:${accent}; }
 #blx-root[data-theme="light"] { --bg:#ffffff; --bg2:#fbfbfc; --bg3:#f6f7fb; --fg:#0a0b0f; --fg-user:#0a0b0f; --bd:#e6e8ef; --bubble-user:#e8ecff; --bubble-bot:#ffffff; --accent:${accent}; }
@@ -166,6 +184,19 @@
       <button id="blx-send">Send</button>
     </div>`;
   root.appendChild(panel);
+
+  // Toast element (after panel)
+  const toast = document.createElement("div");
+  toast.id = "blx-toast";
+  toast.textContent = "Saved! We’ll reach out shortly.";
+  root.appendChild(toast);
+  function showToast(msg) {
+    toast.textContent = msg || "Saved!";
+    toast.classList.remove("show");
+    void toast.offsetWidth; // restart animation
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2600);
+  }
 
   const close = panel.querySelector("#blx-close");
   const menuBtn = panel.querySelector("#blx-menu-btn");
@@ -329,6 +360,7 @@
       leadStat.textContent = "✅ Thanks! We’ll reach out shortly.";
       nameEl.value = ""; emailEl.value = ""; noteEl.value = "";
       setTimeout(() => leadBox.classList.remove("show"), 800);
+      showToast("✅ Thanks! We’ll reach out shortly.");
     } catch (e) {
       leadStat.textContent = "❌ Couldn’t save right now. Please try again.";
       leadStat.style.color = "#b42318";
@@ -338,6 +370,6 @@
 
   // Resolve theme tokens (ensure after DOM)
   const prefers = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const resolvedTheme = theme === "auto" ? (prefers ? "dark" : "light") : theme;
-  root.setAttribute("data-theme", resolvedTheme);
+  const resolvedTheme2 = theme === "auto" ? (prefers ? "dark" : "light") : theme;
+  root.setAttribute("data-theme", resolvedTheme2);
 })();

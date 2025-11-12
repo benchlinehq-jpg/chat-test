@@ -1,32 +1,36 @@
 (() => {
   // Read options from the script tag
-  const script = document.currentScript;
+  const script   = document.currentScript;
   const endpoint = script?.dataset?.endpoint || "/api/chat";
-  const title = script?.dataset?.title || "Chat";
-  const welcome = script?.dataset?.welcome || "Hi! Ask me anything.";
-  const theme = (script?.dataset?.theme || "auto").toLowerCase();
-  const accent = script?.dataset?.accent || "#4f46e5";
+  const title    = script?.dataset?.title || "Chat";
+  const welcome  = script?.dataset?.welcome || "Hi! Ask me anything.";
+  const theme    = (script?.dataset?.theme || "auto").toLowerCase();
+  const accent   = script?.dataset?.accent || "#4f46e5";
 
   // Derive /api/lead from same host as chat endpoint
   let leadEndpoint;
-  try { leadEndpoint = new URL("/api/lead", endpoint).toString(); } catch { leadEndpoint = "/api/lead"; }
+  try { leadEndpoint = new URL("/api/lead", endpoint).toString(); }
+  catch { leadEndpoint = "/api/lead"; }
 
   // Root
   const root = document.createElement("div");
   root.id = "blx-root";
   document.body.appendChild(root);
 
-  // Styles (desktop + mobile tweaks)
+  // Styles (desktop + mobile)
   const css = document.createElement("style");
   css.textContent = `
-#blx-root * { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+#blx-root * { box-sizing: border-box; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial; }
 #blx-btn {
   position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom));
-  z-index: 2147483000; width: 72px; height: 44px; border-radius: 9999px; border: none; cursor: pointer;
-  box-shadow: 0 10px 30px rgba(0,0,0,.18); background: var(--accent); color: #ffffff; font-size: 16px; line-height: 44px; text-align:center;
+  z-index: 2147483000; width: 56px; height: 56px; line-height: 56px; border-radius: 9999px; border: none; cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18); background: var(--accent); color: #ffffff; text-align:center;
+  display:flex; align-items:center; justify-content:center;
 }
+#blx-btn svg { width: 26px; height: 26px; vertical-align: middle; }
+
 #blx-panel {
-  position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 54px);
+  position: fixed; right: max(12px, env(safe-area-inset-right)); bottom: calc(max(12px, env(safe-area-inset-bottom)) + 64px);
   z-index: 2147483000; width: 360px; max-width: calc(100vw - 24px); height: 600px; max-height: calc(100vh - 140px);
   background: var(--bg); color: var(--fg); border-radius: 16px; display: none; box-shadow: 0 20px 60px rgba(0,0,0,.2);
   overflow: hidden; border: 1px solid var(--bd);
@@ -46,8 +50,8 @@
 .blx-bot  { align-self:flex-start; background: var(--bubble-bot); color: var(--fg); border:1px solid var(--bd); }
 
 #blx-bar  { display:flex; gap:8px; padding:12px; border-top:1px solid var(--bd); align-items:center; background:var(--bg); }
-#blx-input { flex:1 1 auto; padding:12px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); min-height: 44px; }
-#blx-send  { padding:12px 16px; border-radius:12px; border:1px solid var(--bd); background:var(--accent); color:#fff; cursor:pointer; min-height: 44px; }
+#blx-input { flex:1 1 auto; padding:12px 14px; border-radius:12px; border:1px solid var(--bd); background:var(--bg2); color:var(--fg); min-height:44px; }
+#blx-send  { padding:12px 16px; border-radius:12px; border:1px solid var(--bd); background:var(--accent); color:#fff; cursor:pointer; min-height:44px; }
 
 #blx-cta   { border:1px solid var(--bd); background:var(--bg3); color:var(--fg); border-radius:10px; padding:10px 12px; cursor:pointer; }
 #blx-lead  { display:none; border-top:1px dashed var(--bd); padding:10px 12px; background:var(--bg); }
@@ -61,10 +65,9 @@
 
 /* --- Mobile tweaks --- */
 @media (max-width: 480px) {
-  #blx-btn { width: 72px; height: 48px; font-size: 16px; line-height: 48px; }
   #blx-panel {
     right: max(8px, env(safe-area-inset-right));
-    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 56px);
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 64px);
     width: calc(100vw - 16px);
     height: min(72vh, 560px);
     border-radius: 14px;
@@ -73,8 +76,7 @@
   #blx-chips { padding: 8px 10px; gap: 6px; }
   #blx-msgs { padding: 10px; gap: 8px; }
   #blx-bar { padding: 10px; gap: 8px; }
-  #blx-input { padding: 12px; font-size: 16px; }
-  #blx-send  { padding: 12px 14px; font-size: 16px; }
+  #blx-input, #blx-send { font-size: 16px; }
   .blx-chip { padding: 6px 10px; font-size: 13px; }
 }
 `;
@@ -85,11 +87,16 @@
   const resolved = theme === "auto" ? (prefersDark ? "dark" : "light") : theme;
   root.setAttribute("data-theme", resolved);
 
-  // Button
+  // Launcher button (chat icon)
   const btn = document.createElement("button");
   btn.id = "blx-btn";
   btn.setAttribute("aria-label", "Open chat");
-  btn.textContent = "OPEN";
+  btn.innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor"
+        d="M4 5.5A3.5 3.5 0 0 1 7.5 2h9A3.5 3.5 0 0 1 20 5.5v6A3.5 3.5 0 0 1 16.5 15H10l-3.6 3.2A1 1 0 0 1 5 17.4V15.5A3.5 3.5 0 0 1 4 11.5v-6Z"/>
+    </svg>
+  `;
   btn.onclick = () => {
     root.dataset.open = root.dataset.open === "true" ? "false" : "true";
     if (root.dataset.open === "true" && msgs.children.length === 0) addBot(welcome);
@@ -117,10 +124,10 @@
       <div class="blx-f"><input id="blx-name" type="text" placeholder="Your name" /></div>
       <div class="blx-f"><input id="blx-email" type="email" placeholder="Your email" /></div>
       <div class="blx-f"><textarea id="blx-note" rows="2" placeholder="Optional message"></textarea></div>
+      <input id="blx-hp" type="text" style="display:none" autocomplete="off" tabindex="-1" aria-hidden="true" />
       <button id="blx-save">Share contact</button>
       <div id="blx-lead-status" style="margin-top:8px;font-size:13px;"></div>
-    </div><input id="blx-hp" type="text" style="display:none" autocomplete="off" tabindex="-1" aria-hidden="true" />
-
+    </div>
 
     <div id="blx-bar">
       <button id="blx-cta" title="Share contact so we can follow up">Share contact</button>
@@ -255,8 +262,10 @@
     const name  = (nameEl.value || "").trim();
     const email = (emailEl.value || "").trim();
     const note  = (noteEl.value || "").trim();
+
+    // Honeypot
     const hp = (document.getElementById("blx-hp").value || "").trim();
-     if (hp) { leadStat.textContent = "❌ Try again."; return; }
+    if (hp) { leadStat.textContent = "❌ Try again."; return; }
 
     if (!name || !email) { leadStat.textContent = "Please enter your name and email."; leadStat.style.color = "#b42318"; return; }
     if (!validEmail(email)) { leadStat.textContent = "Please enter a valid email."; leadStat.style.color = "#b42318"; return; }
@@ -279,4 +288,10 @@
       console.error(e);
     }
   };
+
+  // Resolve theme tokens
+  const prefers = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const resolvedTheme = theme === "auto" ? (prefers ? "dark" : "light") : theme;
+  root.setAttribute("data-theme", resolvedTheme);
+
 })();
